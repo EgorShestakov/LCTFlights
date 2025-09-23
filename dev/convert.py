@@ -1,6 +1,8 @@
 import json
 import os
 from typing import Dict, List, Any
+import geopandas as gpd
+from sqlalchemy import create_engine
 
 
 def json_to_postgis_regions(json_file_path: str, output_file_path: str = None) -> Dict[str, Any]:
@@ -192,18 +194,126 @@ def diagnose_json_file(file_path: str):
     return None
 
 
-# Пример использования
+def load_with_geopandas(geojson_file, db_connection_string):
+    """
+    Загружает GeoJSON используя GeoPandas
+    """
+    # Читаем GeoJSON
+    gdf = gpd.read_file(geojson_file)
+
+    # Устанавливаем систему координат (WGS84)
+    gdf = gdf.set_crs('EPSG:4326')
+
+    # Подключаемся к базе
+    engine = create_engine(db_connection_string)
+
+    # Загружаем в базу
+    gdf.to_postgis(
+        name='regions',
+        con=engine,
+        if_exists='replace',  # или 'append' для добавления
+        index=True
+    )
+
+    print("Данные загружены через GeoPandas!")
+
+
+import geopandas as gpd
+from sqlalchemy import create_engine
+import json
+
+
+def simple_geojson_to_postgis(geojson_file):
+    """
+    Упрощенная функция для загрузки GeoJSON в PostGIS
+    """
+    try:
+        # 1. Читаем GeoJSON файл
+        print("Читаем GeoJSON файл...")
+        gdf = gpd.read_file(geojson_file)
+        print(f"Прочитано {len(gdf)} регионов")
+
+        # 2. Устанавливаем систему координат (WGS84)
+        gdf = gdf.set_crs('EPSG:4326')
+
+        # 3. Подготавливаем строку подключения
+        # ЗАМЕНИТЕ пароль на тот, который указали при установке PostgreSQL!
+        connection_string = 'postgresql://postgres:ваш_пароль@localhost:5432/postgres'
+
+        # 4. Создаем подключение к базе
+        engine = create_engine(connection_string)
+
+        # 5. Создаем базу данных если её нет
+        with engine.connect() as conn:
+            conn.execute("COMMIT")  # Завершаем текущую транзакцию
+            conn.execute("CREATE DATABASE IF NOT EXISTS russia_regions")
+
+        # 6. Подключаемся к новой базе
+        connection_string_db = 'postgresql://postgres:ваш_пароль@localhost:5432/russia_regions'
+        engine_db = create_engine(connection_string_db)
+
+        # 7. Включаем PostGIS расширение
+        with engine_db.connect() as conn:
+            conn.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+
+        # 8. Загружаем данные в базу
+        print("Загружаем данные в базу...")
+        gdf.to_postgis(
+            name='regions',
+            con=engine_db,
+            if_exists='replace',  # Заменяем таблицу если существует
+            index=True
+        )
+
+        print("✅ Данные успешно загружены в базу!")
+        print(f"📊 Загружено {len(gdf)} регионов")
+
+        return True
+
+    except Exception as e:
+        print(f"❌ Ошибка: {e}")
+        return False
+
+
+# Альтернативный вариант - сохраняем как Shapefile (проще!)
+def geojson_to_shapefile(geojson_file, output_shapefile):
+    """
+    Конвертируем GeoJSON в Shapefile - не требует базы данных!
+    """
+    try:
+        gdf = gpd.read_file(geojson_file)
+        gdf = gdf.set_crs('EPSG:4326')
+        gdf.to_file(output_shapefile, driver='ESRI Shapefile')
+        print(f"✅ Shapefile сохранен как: {output_shapefile}")
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка: {e}")
+        return False
+
+
 if __name__ == "__main__":
-    input_file = "../Regions.json"
-    output_file = "Regions_postgis.json"
+    # Способ 1: Загрузка в PostGIS (требует установленный PostgreSQL)
+    # simple_geojson_to_postgis('Regions_postgis.json')
 
-    # Сначала диагностируем файл
-    print("Запускаем диагностику...")
-    data = diagnose_json_file(input_file)
+    # Способ 2: Конвертация в Shapefile (не требует базу данных!)
+    geojson_to_shapefile('Regions_postgis.json', 'regions_shapefile')
 
-    if data is not None:
-        print("\nФайл валиден, запускаем конвертацию...")
-        result = json_to_postgis_regions(input_file, output_file)
-        print("Конвертация завершена успешно!")
-    else:
-        print("\nФайл содержит ошибки, необходимо исправить перед конвертацией")
+
+# # Пример использования
+# if __name__ == "__main__":
+#     # input_file = "../Regions.json"
+#     # output_file = "Regions_postgis.json"
+#     #
+#     # # Сначала диагностируем файл
+#     # print("Запускаем диагностику...")
+#     # data = diagnose_json_file(input_file)
+#     #
+#     # if data is not None:
+#     #     print("\nФайл валиден, запускаем конвертацию...")
+#     #     result = json_to_postgis_regions(input_file, output_file)
+#     #     print("Конвертация завершена успешно!")
+#     # else:
+#     #     print("\nФайл содержит ошибки, необходимо исправить перед конвертацией")
+#     connection_string = 'postgresql://postgres:postgres@localhost:5432/LCTFlights'
+#
+#     load_with_geopandas('Regions_postgis.json', connection_string)
