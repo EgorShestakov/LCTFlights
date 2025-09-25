@@ -1,7 +1,7 @@
 import geopandas as gpd
 from shapely.geometry import Point
 import os
-
+import json
 
 class RegionFinder:
     def __init__(self, shapefile_path):
@@ -153,7 +153,11 @@ def flights_percent(coordinates):
         }
         
         print(f"📍 {region_name}: {count} полетов ({percentage:.2f}%)")
-    
+
+    # Загрузка jsonа в файл
+    with open('../frontend/data_from_back.json', 'w', encoding='utf-8') as f:
+        json.dump(result, f, ensure_ascii=False, indent=4)
+
     print(f"📊 Сумма процентов: {total_percentage:.2f}%")
     print(f"🔢 Обработано регионов: {len(region_counts)}")
     
