@@ -108,7 +108,7 @@ def flights_percent(coordinates):
     Сумма всех процентов = 100%
     '''
     try:
-        region_finder = RegionFinder('./regions_shapefile/regions_shapefile')
+        region_finder = RegionFinder('regions_shapefile/regions_shapefile')
     except (FileNotFoundError, ValueError) as e:
         print(f"❌ Ошибка в flights_percent: {e}")
         return {}

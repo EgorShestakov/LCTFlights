@@ -4,7 +4,7 @@ import region_finder as rf
 def test_find_region():
     # Инициализируем поисковик
     try:
-        region_finder = rf.RegionFinder('./regions_shapefile/regions_shapefile')
+        region_finder = rf.RegionFinder('regions_shapefile/regions_shapefile')
     except (FileNotFoundError, ValueError) as e:
         print(f"Ошибка загрузки shapefile: {e}")
         return
@@ -28,7 +28,7 @@ def test_find_region():
 def test_flights_percent():
     # Инициализируем поисковик
     try:
-        region_finder = rf.RegionFinder('./regions_shapefile/regions_shapefile')
+        region_finder = rf.RegionFinder('regions_shapefile/regions_shapefile')
         print("✅ Shapefile загружен успешно!")
         print(f"Загружено регионов: {len(region_finder.gdf)}")
         print("Названия регионов:", region_finder.gdf['name'].head().tolist())  # Покажем первые 5
