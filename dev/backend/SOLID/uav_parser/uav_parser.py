@@ -5,7 +5,7 @@
 import json
 from typing import List, Dict, Any
 from services.flight_parser_service import FlightParserService
-from entities.flight import FlightData
+from uav_entities.flight import FlightData
 
 
 class UAVFlightParser:

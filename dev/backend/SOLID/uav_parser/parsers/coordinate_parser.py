@@ -5,7 +5,7 @@
 import re
 from typing import Dict
 from .base_parser import BaseParser
-from entities.coordinates import Coordinates
+from uav_entities.coordinates import Coordinates
 
 
 class CoordinateParser(BaseParser):

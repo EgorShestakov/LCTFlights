@@ -2,7 +2,7 @@
 Парсер сообщений о полетах БПЛА (UAV)
 """
 
-from .entities import Coordinates, FlightData
+from .uav_entities import Coordinates, FlightData
 from .parsers import BaseParser, CoordinateParser, DateParser, FieldParser
 from .services import FlightParserService
 

@@ -5,7 +5,7 @@
 import re
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
-from entities.flight import FlightData
+from uav_entities.flight import FlightData
 from parsers.coordinate_parser import CoordinateParser
 from parsers.date_parser import DateParser
 from parsers.field_parser import FieldParser
