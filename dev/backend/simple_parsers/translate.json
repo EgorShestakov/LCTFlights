@@ -1,0 +1,10 @@
+{
+  "flight_identification": "SID",
+  "uav_type": ["TYP"],
+  "takeoff_coordinates": ["DEP", "ADEPZ"],
+  "landing_coordinates": ["DEST", "ADARRZ"],
+  "takeoff_time": "ATD",
+  "landing_time": "ATA",
+  "takeoff_date": "ADD",
+  "landing_date": "ADA"
+}
