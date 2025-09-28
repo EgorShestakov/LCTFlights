@@ -20,6 +20,32 @@ class FlightData:
     landing_date: Optional[Dict[str, str]] = None
     flight_duration: Optional[Dict[str, Any]] = None
 
+    def get_takeoff_coordinates(self) -> tuple:
+        """
+        Возвращает координаты взлета в виде кортежа (latitude, longitude)
+
+        Returns:
+            Кортеж с координатами или None если координаты отсутствуют
+        """
+        if (self.takeoff_coordinates and
+                self.takeoff_coordinates.latitude is not None and
+                self.takeoff_coordinates.longitude is not None):
+            return (self.takeoff_coordinates.latitude, self.takeoff_coordinates.longitude)
+        return None
+
+    def get_landing_coordinates(self) -> tuple:
+        """
+        Возвращает координаты посадки в виде кортежа (latitude, longitude)
+
+        Returns:
+            Кортеж с координатами или None если координаты отсутствуют
+        """
+        if (self.landing_coordinates and
+                self.landing_coordinates.latitude is not None and
+                self.landing_coordinates.longitude is not None):
+            return (self.landing_coordinates.latitude, self.landing_coordinates.longitude)
+        return None
+
     def to_dict(self) -> dict:
         """Конвертирует объект в словарь для сериализации в JSON"""
         result = {}

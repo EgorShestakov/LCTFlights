@@ -88,6 +88,155 @@ class UAVFlightParser:
         """Возвращает количество распарсенных сообщений"""
         return len(self.parsed_data)
 
+    def extract_unique_takeoff_coordinates(self) -> list:
+        """
+        Извлекает уникальные координаты взлета из всех распарсенных сообщений
+
+        Returns:
+            Список кортежей координат (latitude, longitude) без дубликатов по flight_identification
+        """
+        seen_ids = set()
+        coordinates_list = []
+
+        for flight_data in self.parsed_data:
+            # Пропускаем записи без идентификатора
+            if not flight_data.flight_identification:
+                continue
+
+            # Если уже видели этот идентификатор, пропускаем
+            if flight_data.flight_identification in seen_ids:
+                continue
+
+            # Получаем координаты взлета
+            coords = flight_data.get_takeoff_coordinates()
+            if coords:
+                coordinates_list.append(coords)
+                seen_ids.add(flight_data.flight_identification)
+
+        return coordinates_list
+
+    def extract_unique_landing_coordinates(self) -> list:
+        """
+        Извлекает уникальные координаты посадки из всех распарсенных сообщений
+
+        Returns:
+            Список кортежей координат (latitude, longitude) без дубликатов по flight_identification
+        """
+        seen_ids = set()
+        coordinates_list = []
+
+        for flight_data in self.parsed_data:
+            # Пропускаем записи без идентификатора
+            if not flight_data.flight_identification:
+                continue
+
+            # Если уже видели этот идентификатор, пропускаем
+            if flight_data.flight_identification in seen_ids:
+                continue
+
+            # Получаем координаты посадки
+            coords = flight_data.get_landing_coordinates()
+            if coords:
+                coordinates_list.append(coords)
+                seen_ids.add(flight_data.flight_identification)
+
+        return coordinates_list
+
+    def extract_all_unique_coordinates(self) -> list:
+        """
+        Извлекает все уникальные координаты (и взлета и посадки) из всех распарсенных сообщений
+
+        Returns:
+            Список кортежей координат (latitude, longitude) без дубликатов по flight_identification
+        """
+        seen_ids = set()
+        coordinates_list = []
+
+        for flight_data in self.parsed_data:
+            # Пропускаем записи без идентификатора
+            if not flight_data.flight_identification:
+                continue
+
+            # Если уже видели этот идентификатор, пропускаем
+            if flight_data.flight_identification in seen_ids:
+                continue
+
+            # Сначала пробуем взлет, потом посадку
+            coords = (flight_data.get_takeoff_coordinates() or
+                      flight_data.get_landing_coordinates())
+
+            if coords:
+                coordinates_list.append(coords)
+                seen_ids.add(flight_data.flight_identification)
+
+        return coordinates_list
+
+    def filter_by_coordinates(self, min_lat: float = None, max_lat: float = None,
+                              min_lon: float = None, max_lon: float = None) -> list:
+        """
+        Фильтрует распарсенные данные по географическим координатам
+
+        Args:
+            min_lat: Минимальная широта
+            max_lat: Максимальная широта
+            min_lon: Минимальная долгота
+            max_lon: Максимальная долгота
+
+        Returns:
+            Список FlightData, отфильтрованный по координатам
+        """
+        filtered_data = []
+
+        for flight_data in self.parsed_data:
+            coords = flight_data.get_takeoff_coordinates()
+            if not coords:
+                continue
+
+            lat, lon = coords
+
+            # Проверяем границы широты
+            if min_lat is not None and lat < min_lat:
+                continue
+            if max_lat is not None and lat > max_lat:
+                continue
+
+            # Проверяем границы долготы
+            if min_lon is not None and lon < min_lon:
+                continue
+            if max_lon is not None and lon > max_lon:
+                continue
+
+            filtered_data.append(flight_data)
+
+        return filtered_data
+
+    def get_coordinates_statistics(self) -> dict:
+        """
+        Возвращает статистику по координатам
+
+        Returns:
+            Словарь со статистикой
+        """
+        takeoff_coords = []
+        landing_coords = []
+
+        for flight_data in self.parsed_data:
+            takeoff = flight_data.get_takeoff_coordinates()
+            landing = flight_data.get_landing_coordinates()
+
+            if takeoff:
+                takeoff_coords.append(takeoff)
+            if landing:
+                landing_coords.append(landing)
+
+        return {
+            "total_flights": len(self.parsed_data),
+            "flights_with_takeoff_coords": len(takeoff_coords),
+            "flights_with_landing_coords": len(landing_coords),
+            "unique_takeoff_locations": len(set(takeoff_coords)),
+            "unique_landing_locations": len(set(landing_coords))
+        }
+
 
 if __name__ == "__main__":
     parser = UAVFlightParser()
