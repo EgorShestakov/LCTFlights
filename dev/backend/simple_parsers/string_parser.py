@@ -1,7 +1,7 @@
 import re
 import json
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 import reader as rd
 
 
@@ -9,22 +9,22 @@ class UAVFlightParser:
     """Парсер сообщений о полетах БПЛА"""
 
     # Словари для расшифровки кодов
-    CODE_DICTIONARIES = rd.read_json_file("codes.json")
-    #  = {
-    #     "uav_type": {
-    #         "BLA": "Беспилотный летательный аппарат",
-    #         "1BLA": "Беспилотный летательный аппарат (с уточнением)",
-    #         "2BLA": "Беспилотный летательный аппарат (мультироторный)",
-    #         "AER": "Летательный аппарат аэростатного типа",
-    #         "SHAR": "Аэростат (шар-зонд)"
-    #     },
-    #     "coordinate_prefix": {
-    #         "DEP": "Координаты точки взлета",
-    #         "DEST": "Координаты точки посадки",
-    #         "ADEPZ": "Координаты аэродрома вылета",
-    #         "ADARRZ": "Координаты аэродрома прибытия"
-    #     }
-    # }
+    # CODE_DICTIONARIES = rd.read_json_file("codes.json")
+    CODE_DICTIONARIES = {
+        "uav_type": {
+            "BLA": "Беспилотный летательный аппарат",
+            "1BLA": "Беспилотный летательный аппарат (с уточнением)",
+            "2BLA": "Беспилотный летательный аппарат (мультироторный)",
+            "AER": "Летательный аппарат аэростатного типа",
+            "SHAR": "Аэростат (шар-зонд)"
+        },
+        "coordinate_prefix": {
+            "DEP": "Координаты точки взлета",
+            "DEST": "Координаты точки посадки",
+            "ADEPZ": "Координаты аэродрома вылета",
+            "ADARRZ": "Координаты аэродрома прибытия"
+        }
+    }
 
     def __init__(self):
         self.parsed_data = []
@@ -128,7 +128,21 @@ class UAVFlightParser:
     def parse_single_message(self, message: str) -> Dict[str, Any]:
         """Парсит одно сообщение простым поиском подстрок"""
 
-        # Ваш JSON-шаблон для сопоставления
+        # Основной процесс разбивается на четкие этапы
+        message_single_line = self._normalize_message(message)
+        result = self._extract_primary_fields(message_single_line)
+        result = self._handle_dof_field(message_single_line, result)
+        result = self._calculate_flight_duration(result)
+
+        return result
+
+    def _normalize_message(self, message: str) -> str:
+        """Нормализует сообщение - убирает лишние пробелы"""
+        return " ".join(message.strip().split())
+
+    def _extract_primary_fields(self, message: str) -> Dict[str, Any]:
+        """Извлекает основные поля из сообщения"""
+
         translate_map = {
             "flight_identification": "SID",
             "uav_type": ["TYP"],
@@ -142,74 +156,76 @@ class UAVFlightParser:
 
         result = {}
 
-        # Преобразуем сообщение в одну строку для поиска
-        message_single_line = " ".join(message.strip().split())
-
-        # Обрабатываем каждый ключ и его коды
         for key, codes in translate_map.items():
-            value_found = None
+            value = self._find_value_by_codes(message, codes)
+            result[key] = self._transform_value(key, value) if value else None
 
-            # Если codes - список (несколько вариантов кодов)
-            if isinstance(codes, list):
-                for code in codes:
-                    # Ищем код с / (например "TYP/", "DEP/")
-                    pattern = f"{code}/([A-Z0-9]+)"
-                    match = re.search(pattern, message_single_line)
-                    if match:
-                        value_found = match.group(1)
-                        break
+        return result
 
-                    # Ищем код с пробелом (например "-SID ", "-ATD ")
-                    pattern = f"-{code}\\s+([A-Z0-9]+)"
-                    match = re.search(pattern, message_single_line)
-                    if match:
-                        value_found = match.group(1)
-                        break
-            else:
-                # Если codes - одиночный код
-                code = codes
-                # Ищем код с /
-                pattern = f"{code}/([A-Z0-9]+)"
-                match = re.search(pattern, message_single_line)
-                if match:
-                    value_found = match.group(1)
-                else:
-                    # Ищем код с пробелом
-                    pattern = f"-{code}\\s+([A-Z0-9]+)"
-                    match = re.search(pattern, message_single_line)
-                    if match:
-                        value_found = match.group(1)
+    def _find_value_by_codes(self, message: str, codes: Union[str, List[str]]) -> Optional[str]:
+        """Ищет значение по одному или нескольким кодам"""
 
-            # Применяем соответствующее преобразование к найденному значению
-            if value_found:
-                if "coordinates" in key:
-                    result[key] = self.parse_coordinates(value_found)
-                elif key == "uav_type":
-                    result[key] = {
-                        "code": value_found,
-                        "description": self.CODE_DICTIONARIES["uav_type"].get(value_found, "Неизвестный тип БПЛА")
-                    }
-                elif "date" in key:
-                    result[key] = self.parse_date(value_found)
-                elif "time" in key:
-                    result[key] = self.parse_time(value_found)
-                else:
-                    result[key] = value_found
-            else:
-                result[key] = None
+        if isinstance(codes, list):
+            for code in codes:
+                value = self._find_value_by_code(message, code)
+                if value:
+                    return value
+            return None
+        else:
+            return self._find_value_by_code(message, codes)
 
-        # Дополнительная обработка для DOF (если не найдены отдельные даты)
+    def _find_value_by_code(self, message: str, code: str) -> Optional[str]:
+        """Ищет значение по конкретному коду в сообщении"""
+
+        # Пробуем найти с форматом CODE/VALUE
+        pattern_slash = f"{code}/([A-Z0-9]+)"
+        match = re.search(pattern_slash, message)
+        if match:
+            return match.group(1)
+
+        # Пробуем найти с форматом -CODE VALUE
+        pattern_space = f"-{code}\\s+([A-Z0-9]+)"
+        match = re.search(pattern_space, message)
+        if match:
+            return match.group(1)
+
+        return None
+
+    def _transform_value(self, key: str, value: str) -> Any:
+        """Применяет соответствующее преобразование к значению в зависимости от ключа"""
+
+        if "coordinates" in key:
+            return self.parse_coordinates(value)
+        elif key == "uav_type":
+            return {
+                "code": value,
+                "description": self.CODE_DICTIONARIES["uav_type"].get(value, "Неизвестный тип БПЛА")
+            }
+        elif "date" in key:
+            return self.parse_date(value)
+        elif "time" in key:
+            return self.parse_time(value)
+        else:
+            return value
+
+    def _handle_dof_field(self, message: str, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Обрабатывает поле DOF (дата полета) если не найдены отдельные даты"""
+
         if (result.get("takeoff_date") is None and
                 result.get("landing_date") is None and
-                "DOF/" in message_single_line):
+                "DOF/" in message):
 
-            dof_match = re.search(r'DOF/(\d{6})', message_single_line)
+            dof_match = re.search(r'DOF/(\d{6})', message)
             if dof_match:
                 date_obj = self.parse_date(dof_match.group(1))
                 result["takeoff_date"] = date_obj
                 result["landing_date"] = date_obj
 
-        # Расчет продолжительности полета
+        return result
+
+    def _calculate_flight_duration(self, result: Dict[str, Any]) -> Dict[str, Any]:
+        """Вычисляет продолжительность полета если есть все необходимые данные"""
+
         if (result.get("takeoff_time") and result.get("landing_time") and
                 result.get("takeoff_date") and result.get("landing_date")):
             duration = self.calculate_duration(

@@ -1,10 +1,10 @@
-import region_finder as rf
+from dev.backend.uav_parser import region_finder as rf
 
-
+path_to_shape = "dev/backend/regions_shapefile/regions_shapefile"
 def test_find_region():
     # Инициализируем поисковик
     try:
-        region_finder = rf.RegionFinder('regions_shapefile/regions_shapefile')
+        region_finder = rf.RegionFinder(path_to_shape)
     except (FileNotFoundError, ValueError) as e:
         print(f"Ошибка загрузки shapefile: {e}")
         return
@@ -28,7 +28,7 @@ def test_find_region():
 def test_flights_percent():
     # Инициализируем поисковик
     try:
-        region_finder = rf.RegionFinder('regions_shapefile/regions_shapefile')
+        region_finder = rf.RegionFinder(path_to_shape)
         print("✅ Shapefile загружен успешно!")
         print(f"Загружено регионов: {len(region_finder.gdf)}")
         print("Названия регионов:", region_finder.gdf['name'].head().tolist())  # Покажем первые 5
