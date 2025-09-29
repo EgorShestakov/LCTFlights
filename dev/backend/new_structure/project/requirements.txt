@@ -1,0 +1,11 @@
+pandas
+geopandas
+shapely
+openpyxl
+pytest
+json
+os
+re
+typing
+abc
+datetime
