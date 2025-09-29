@@ -3,6 +3,8 @@ from shapely.geometry import Point
 import os
 import json
 
+from uav_parser import UAVFlightParser
+
 class RegionFinder:
     def __init__(self, shapefile_path):
         """
@@ -108,9 +110,9 @@ def flights_percent(coordinates):
     Сумма всех процентов = 100%
     '''
     try:
-        region_finder = RegionFinder('regions_shapefile/regions_shapefile')
+        region_finder = RegionFinder('C:/Users/1\PycharmProjects\LCTFlights\dev/backend/regions_shapefile/regions_shapefile')
     except (FileNotFoundError, ValueError) as e:
-        print(f"❌ Ошибка в flights_percent: {e}")
+        print(f"Ошибка в flights_percent: {e}")
         return {}
     
     # Считаем полеты по регионам
@@ -118,28 +120,28 @@ def flights_percent(coordinates):
     total_flights = len(coordinates)
     
     if total_flights == 0:
-        print("⚠️ Нет координат для анализа")
+        print("Нет координат для анализа")
         return {}
     
-    print(f"📊 Всего полетов для анализа: {total_flights}")
+    print(f"Всего полетов для анализа: {total_flights}")
     
-    for i, (lon, lat) in enumerate(coordinates, 1):
+    for i, (lat, lon) in enumerate(coordinates, 1):
         region_name = region_finder.find_region(lat, lon)
         if region_name:
             region_counts[region_name] = region_counts.get(region_name, 0) + 1
-            print(f"✅ {i}/{total_flights}: ({lat:.4f}, {lon:.4f}) → {region_name}")
+            print(f"{i}/{total_flights}: ({lat:.4f}, {lon:.4f}) {region_name}")
         else:
-            print(f"❌ {i}/{total_flights}: ({lat:.4f}, {lon:.4f}) → регион не найден")
+            print(f"{i}/{total_flights}: ({lat:.4f}, {lon:.4f}) регион не найден")
     
     if not region_counts:
-        print("⚠️ Не найдено ни одного региона для заданных координат")
+        print("Не найдено ни одного региона для заданных координат")
         return {}
     
     # Формируем результат с правильными процентами
     result = {}
     total_percentage = 0
     
-    print("\n📈 Статистика по регионам:")
+    print("\nСтатистика по регионам:")
     print("-" * 40)
     
     for i, (region_name, count) in enumerate(region_counts.items(), 1):
@@ -152,24 +154,89 @@ def flights_percent(coordinates):
             # "absolute_count": count  # Добавляем абсолютное количество для информации
         }
         
-        print(f"📍 {region_name}: {count} полетов ({percentage:.2f}%)")
+        print(f"{region_name}: {count} полетов ({percentage:.2f}%)")
 
     # Загрузка jsonа в файл
-    with open('../frontend/data_from_back.json', 'w', encoding='utf-8') as f:
+    with open('../../frontend/data_from_back.json', 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
 
-    print(f"📊 Сумма процентов: {total_percentage:.2f}%")
-    print(f"🔢 Обработано регионов: {len(region_counts)}")
+    print(f"Сумма процентов: {total_percentage:.2f}%")
+    print(f"Обработано регионов: {len(region_counts)}")
     
     print(f"результат: {result}")
     
     return result
 
 
+def parse_coordinates_from_strings_list():
+    parser = UAVFlightParser()
+
+    # Тестовые сообщения
+    test_messages = [
+        "-SID FLIGHT001 TYP/BLA DEP/5530N03730E DEST/5535N03735E ATD/0830 ATA/0930 ADD/151223 ADA/151223",
+        "-SID FLIGHT002 TYP/1BLA DEP/5230N03720E DEST/5235N03725E ATD/0900 ATA/1030 DOF/151223",
+        """ЗЦЗЦ ПАД000 0754
+ФФ УНКУЗДЗЬ
+290754 УНКУЗДЗИ
+(SHR-ZZZZZ
+-ZZZZ0400
+-M0025/M0027 /ZONA 6837N08005E 6837N08007E 6834N08010E 6836N08022E
+6843N08026E 6845N08032E 6841N08039E 6840N08036E 6842N08031E
+6836N08027E 6830N08014E 6837N08005E/
+-ZZZZ1800
+-DEP/6836N08007E DEST/6836N08007E DOF/240102 EET/UNKU0001 UNKL0001
+OPR/ООО ФИНКО REG/0267J81 02K6779 TYP/2BLA RMK/MR091162 MESSOIAHA GT
+WZL/POS 683605N0800635E R 500 M H ABS 0-270 M MONITORING TRUBOPROVODA
+POLET W ZONE H 250-270 M AMSL 220-250 AGL SHR RAZRABOTAL PRP
+AWERXKOW TEL 89127614825 WZAIMODEJSTWIE S ORGANAMI OWD OSUQESTWLIAET
+WNESHNIJ PILOT BWS САЛТЫКОВ 89174927358 89128709162 SID/7771444381)""",
+        """(SHR-ZZZZZ
+-ZZZZ0400
+-M0025/M0027 /ZONA 6837N08005E 6849N07959E 6859N07957E 6859N08003E
+6848N08026E 6859N08040E 6902N08057E 6858N08101E 6841N08039E
+6833N08027E 6824N08030E 6824N08023E 6837N08005E/
+-ZZZZ0600
+-DEP/6836N08007E DEST/6836N08007E DOF/250103 EET/UNKL0001 OPR/ООО
+ФИНКО REG/0R02080 055N126 TYP/2BLA RMK/MR091355 MESSOIAHA BWS
+SUPERCAM S350 GT WZL POS 683605N0800635E H ABS 0 270 M R 500 M W ZONE
+H POLETА 250 270 M AMSL 220 240 AGL CELX MONITORING TRUBOPROVODA SHR
+RAZRABOTAL PRP ЕЛЫШЕВА TEL 89829906599 WZAIMODEJSTWIE S ORGANAMI OWD
+OSUQESTWLIAET WNESHNIJ PILOT BWS АРСЕНЬЕВ 89962984808 89128709162
+SID/7772271829)""",
+        """
+        ЗЦЗЦ ПАД592 0401
+ФФ УНКУЗДЗЬ УНКЛЗРЗЬ
+020401 УОООЗТЗЬ
+(DEP-ZZZZZ-ZZZZ0400-ZZZZ1800
+-DEP/6836N08007E DEST/6836N08007E DOF/240102
+REG/0267J81 RMK/MR091162)
+        """,
+        """
+        ЗЦЗЦ ПАТ993 0539
+ФФ УНКЛЗТЗЬ УНКЛЗФЗЬ УНКЛЗРЗЬ
+240538 УНКУЗДЗЬ
+(ARR-RF37373-ZZZZ0530-ZZZZ0538
+-DEP/5559N09245E DEST/5559N09245E DOF/240124 RMK/ SID/7771472929)
+""",
+        """
+        -TITLE IDEP
+-SID 7772271821
+-ADD 250104
+-ATD 0030
+-ADEP ZZZZ
+-ADEPZ 6049N06937E
+-PAP 0
+-REG 0J02194 00Q2171
+        """
+
+    ]
+    parser.parse_multiple_messages(test_messages)
+    takeoff_coords = parser.extract_unique_takeoff_coordinates()
+    flights_percent(takeoff_coords)
 # Использование
 def main():
     pass
 
 
 if __name__ == "__main__":
-    main()
+    parse_coordinates_from_strings_list()
