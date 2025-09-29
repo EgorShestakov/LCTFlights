@@ -15,32 +15,24 @@ class ExcelParser:
         self.required_fields = REQUIRED_FIELDS
 
     def parse_excel(self, file_path: str) -> List[Dict]:
-        """Парсит Excel-файл, возвращая список dicts с сообщениями (SHR/DEP/ARR группами)"""
         all_data = []
-
         try:
             xl = pd.ExcelFile(file_path)
-
             for sheet_name in xl.sheet_names:
-                # Read in chunks for large files
-                reader = pd.read_excel(file_path, sheet_name=sheet_name, chunksize=CHUNKSIZE)
-                for chunk in reader:
-                    if chunk.empty:
-                        continue
-
-                    orientation = self.orientation_detector.detect_orientation(chunk)
-                    if orientation == 'rows':
-                        sheet_data = self._parse_rows_orientation(chunk, sheet_name)
-                    elif orientation == 'key_value':
-                        sheet_data = self._parse_key_value_rows(chunk, sheet_name)
-                    else:
-                        sheet_data = self._parse_columns_orientation(chunk, sheet_name)
-                    all_data.extend(sheet_data)
-
+                df = pd.read_excel(file_path, sheet_name=sheet_name)
+                if df.empty:
+                    continue
+                orientation = self.orientation_detector.detect_orientation(df)
+                if orientation == 'rows':
+                    sheet_data = self._parse_rows_orientation(df, sheet_name)
+                elif orientation == 'key_value':
+                    sheet_data = self._parse_key_value_rows(df, sheet_name)
+                else:
+                    sheet_data = self._parse_columns_orientation(df, sheet_name)
+                all_data.extend(sheet_data)
         except Exception as e:
             print(f"Ошибка при обработке файла {file_path}: {e}")
-
-        return all_data  # [{'SHR': '...', 'DEP': '...', 'ARR': '...'}, ...]
+        return all_data
 
     def _parse_columns_orientation(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
         """Парсит данные с заголовками в столбцах"""
