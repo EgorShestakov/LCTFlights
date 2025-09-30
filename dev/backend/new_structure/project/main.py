@@ -11,7 +11,6 @@ def main():
     excel_parser = ExcelParser()
     batch_processor = BatchProcessor(excel_parser)
     all_messages = batch_processor.process_directory(DATA_DIR)  # List of dicts: [{'SHR': '...', 'DEP': '...', 'ARR': '...'}, ...]
-
     # Step 2: Parse messages to FlightData JSONs
     message_parser = MessageParser()
     flight_jsons = []  # List of JSON dicts

@@ -8,21 +8,25 @@ import re
 
 class ExcelParser:
     """Универсальный парсер Excel-файлов с поддержкой разных форматов и ориентаций"""
-    
+
     def __init__(self):
         self.orientation_detector = TableOrientationDetector()
         self.mapper = DataMapper()
         self.required_fields = REQUIRED_FIELDS
 
     def parse_excel(self, file_path: str) -> List[Dict]:
+        """Парсит Excel-файл, возвращая список dicts с сообщениями (SHR/DEP/ARR группами)"""
         all_data = []
+
         try:
             xl = pd.ExcelFile(file_path)
             for sheet_name in xl.sheet_names:
                 df = pd.read_excel(file_path, sheet_name=sheet_name)
                 if df.empty:
                     continue
+
                 orientation = self.orientation_detector.detect_orientation(df)
+                print(f"Processing sheet {sheet_name} with orientation: {orientation}")
                 if orientation == 'rows':
                     sheet_data = self._parse_rows_orientation(df, sheet_name)
                 elif orientation == 'key_value':
@@ -30,8 +34,10 @@ class ExcelParser:
                 else:
                     sheet_data = self._parse_columns_orientation(df, sheet_name)
                 all_data.extend(sheet_data)
+
         except Exception as e:
             print(f"Ошибка при обработке файла {file_path}: {e}")
+
         return all_data
 
     def _parse_columns_orientation(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
@@ -45,7 +51,7 @@ class ExcelParser:
             if self._validate_row(parsed_row):
                 parsed_row['source_sheet'] = sheet_name
                 parsed_row['orientation'] = 'columns'
-                results.append(self._group_to_messages(parsed_row))  # Convert to SHR/DEP/ARR dict
+                results.append(self._group_to_messages(parsed_row))
 
         return results
 
@@ -104,55 +110,26 @@ class ExcelParser:
     def _parse_row(self, row: pd.Series, column_mapping: Dict) -> Dict:
         """Парсит строку"""
         result = {}
-        if 'takeoff' in column_mapping:
-            coords = self._extract_coordinates(row[column_mapping['takeoff']])
-            if coords:
-                result['takeoff_coords'] = coords
-        if 'landing' in column_mapping:
-            coords = self._extract_coordinates(row[column_mapping['landing']])
-            if coords:
-                result['landing_coords'] = coords
-        if 'drone_model' in column_mapping:
-            model = self._extract_drone_model(row[column_mapping['drone_model']])
-            if model:
-                result['drone_model'] = model
+        for field in ['flight_identification', 'uav_type', 'takeoff_coordinates',
+                      'landing_coordinates', 'takeoff_time', 'landing_time',
+                      'takeoff_date', 'landing_date']:
+            if field in column_mapping:
+                value = row[column_mapping[field]]
+                parsed_value = self.mapper.parse_field_value(field, value)
+                if parsed_value:
+                    result[field] = parsed_value
         return result
 
     def _group_to_messages(self, parsed_row: Dict) -> Dict:
-        """Группирует parsed_row в dict с SHR/DEP/ARR (placeholder; adjust based on actual messages)"""
-        # Here, extract messages from parsed_row if available; for now, dummy
+        """Группирует parsed_row в dict с SHR/DEP/ARR"""
         return {
-            'SHR': parsed_row.get('drone_model', ''),  # Example
-            'DEP': f"DEP/{parsed_row.get('takeoff_coords', ('', ''))[0]}",  # Example
-            'ARR': f"ARR/{parsed_row.get('landing_coords', ('', ''))[0]}"   # Example
+            'SHR': parsed_row.get('uav_type', ''),
+            'DEP': f"DEP/{parsed_row.get('takeoff_coordinates', ('', ''))[0]}" if parsed_row.get(
+                'takeoff_coordinates') else '',
+            'ARR': f"ARR/{parsed_row.get('landing_coordinates', ('', ''))[0]}" if parsed_row.get(
+                'landing_coordinates') else ''
         }
 
-    def _extract_coordinates(self, value) -> Optional[Tuple[float, float]]:
-        if pd.isna(value):
-            return None
-        text = str(value)
-        patterns = [r'(\d+\.\d+)[,\s]+(\d+\.\d+)', ...]  # Your patterns
-        for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                try:
-                    lat = float(match.group(1))
-                    lon = float(match.group(2))
-                    if -90 <= lat <= 90 and -180 <= lon <= 180:
-                        return (lat, lon)
-                except ValueError:
-                    continue
-        return None
-
-    def _extract_drone_model(self, value) -> Optional[str]:
-        if pd.isna(value):
-            return None
-        text = str(value).strip().upper()
-        models = ['DJI', 'MAVIC', 'PHANTOM', 'INSPIRE', 'MATRICE', 'AIR']
-        for model in models:
-            if model in text:
-                return text
-        return text if text and text != 'NAN' else None
-
     def _validate_row(self, parsed_row: Dict) -> bool:
+        """Проверяет наличие обязательных полей"""
         return any(field in parsed_row for field in self.required_fields)
