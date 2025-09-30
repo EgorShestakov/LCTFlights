@@ -1,32 +1,42 @@
-import pandas as pd
-from parsers.universal_parser import UniversalDroneDataParser
+
+import os
+import json
+from config import DATA_DIR, FRONTEND_JSON_PATH, FRONTEND_STATS_PATH
+from src.parsers.excel_parser import ExcelParser
+from src.analyzers.region_analyzer import RegionAnalyzer
+from src.parsers.uav_flight_parser import UAVFlightParser
+import glob
 
 
 def main():
-    # Инициализация парсера
-    parser = UniversalDroneDataParser()
+    # Initialize parsers and analyzer
+    excel_parser = ExcelParser()
+    uav_parser = UAVFlightParser()
+    analyzer = RegionAnalyzer()
 
-    # Обработка файла
-    try:
-        results = parser.parse_excel("drone_data.xlsx")
+    # Process Excel files
+    excel_files = glob.glob(os.path.join(DATA_DIR, "*.xlsx")) + glob.glob(os.path.join(DATA_DIR, "*.xls"))
+    all_flights = []
 
-        # Вывод результатов
-        print(f"Обработано записей: {len(results)}")
+    for file_path in excel_files:
+        print(f"Processing file: {file_path}")
+        flights = excel_parser.parse_excel(file_path, uav_parser)
+        all_flights.extend(flights)
 
-        if results:
-            df = pd.DataFrame(results)
-            print("\nПервые 5 записей:")
-            print(df.head())
+    # Save flight data to JSON
+    os.makedirs(os.path.dirname(FRONTEND_JSON_PATH), exist_ok=True)
+    with open(FRONTEND_JSON_PATH, 'w', encoding='utf-8') as f:
+        json.dump([flight.to_dict() for flight in all_flights], f, ensure_ascii=False, indent=4)
+    print(f"Output written to {FRONTEND_JSON_PATH}")
 
-            # Сохранение результатов
-            df.to_excel("parsed_results.xlsx", index=False)
-            print("\nРезультаты сохранены в parsed_results.xlsx")
-        else:
-            print("Данные не найдены")
-
-    except Exception as e:
-        print(f"Ошибка при обработке: {e}")
+    # Compute and save flight statistics
+    stats = analyzer.compute_flight_statistics(all_flights)
+    os.makedirs(os.path.dirname(FRONTEND_STATS_PATH), exist_ok=True)
+    with open(FRONTEND_STATS_PATH, 'w', encoding='utf-8') as f:
+        json.dump(stats, f, ensure_ascii=False, indent=4)
+    print(f"Statistics written to {FRONTEND_STATS_PATH}")
 
 
 if __name__ == "__main__":
     main()
+
