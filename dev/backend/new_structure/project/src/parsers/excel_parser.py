@@ -1,16 +1,14 @@
 import pandas as pd
 from typing import List, Dict, Optional, Tuple
-from dev.backend.new_structure.project.config import CHUNKSIZE, REQUIRED_FIELDS
-from ..utils.orientation_detector import TableOrientationDetector
-from ..utils.data_mapper import DataMapper
+from config import REQUIRED_FIELDS
+from src.utils.data_mapper import DataMapper
 import re
 
 
 class ExcelParser:
-    """Универсальный парсер Excel-файлов с поддержкой разных форматов и ориентаций"""
+    """Универсальный парсер Excel-файлов для колонко-ориентированных данных"""
 
     def __init__(self):
-        self.orientation_detector = TableOrientationDetector()
         self.mapper = DataMapper()
         self.required_fields = REQUIRED_FIELDS
 
@@ -25,11 +23,15 @@ class ExcelParser:
                 if df.empty:
                     continue
 
-                orientation = self.orientation_detector.detect_orientation(df)
-                print(f"Processing sheet {sheet_name} with orientation: {orientation}")
-                if orientation == 'rows':
-                    sheet_data = self._parse_rows_orientation(df, sheet_name)
-                elif orientation == 'key_value':
+                # Check for key_value format
+                first_column = df.iloc[:, 0] if len(df.columns) > 0 else pd.Series()
+                is_key_value = any(
+                    any(sep in str(cell) for sep in [':', '=', '-'])
+                    for cell in first_column if pd.notna(cell)
+                )
+
+                print(f"Processing sheet {sheet_name} with format: {'key_value' if is_key_value else 'columns'}")
+                if is_key_value:
                     sheet_data = self._parse_key_value_rows(df, sheet_name)
                 else:
                     sheet_data = self._parse_columns_orientation(df, sheet_name)
@@ -51,24 +53,6 @@ class ExcelParser:
             if self._validate_row(parsed_row):
                 parsed_row['source_sheet'] = sheet_name
                 parsed_row['orientation'] = 'columns'
-                results.append(self._group_to_messages(parsed_row))
-
-        return results
-
-    def _parse_rows_orientation(self, df: pd.DataFrame, sheet_name: str) -> List[Dict]:
-        """Парсит данные с заголовками в строках"""
-        df_transposed = df.T
-        df_transposed.columns = df_transposed.iloc[0]
-        df_transposed = df_transposed[1:]
-
-        column_mapping = self.mapper.identify_columns(df_transposed.columns)
-
-        results = []
-        for _, row in df_transposed.iterrows():
-            parsed_row = self._parse_row(row, column_mapping)
-            if self._validate_row(parsed_row):
-                parsed_row['source_sheet'] = sheet_name
-                parsed_row['orientation'] = 'rows'
                 results.append(self._group_to_messages(parsed_row))
 
         return results
@@ -101,7 +85,16 @@ class ExcelParser:
         return records
 
     def _normalize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Нормализует DataFrame"""
+        """Нормализует DataFrame, пропуская заголовочные строки"""
+        # Skip title rows or separators (e.g., 'ЯНВАРЬ', report titles)
+        for i, row in df.iterrows():
+            first_cell = str(row.iloc[0]) if len(row) > 0 and pd.notna(row.iloc[0]) else ""
+            if self.mapper.is_record_separator(first_cell) or not any(pd.notna(cell) for cell in row):
+                continue
+            # Assume first non-title row is headers
+            df = df.iloc[i:].reset_index(drop=True)
+            break
+
         df.columns = [str(col).strip().lower() for col in df.columns]
         df = df.dropna(how='all')
         df = df.loc[:, ~df.isnull().all()]

@@ -9,12 +9,12 @@ class DataMapper:
     def __init__(self):
         self.column_mappings = {
             'flight_identification': ['рейс', 'flight', 'sid', 'pln', 'п/п', 'телеграмма pln'],
-            'uav_type': ['тип', 'type', 'группа', 'борт', 'model', 'typ', 'shr', 'тип вс', 'борт. номер вс.'],
+            'uav_type': ['тип', 'type', 'группа', 'борт', 'model', 'typ', 'shr', 'тип вс', 'тип ВС', 'борт. номер вс.'],
             'takeoff_coordinates': ['взлет', 'takeoff', 'dep', 'место вылета', 'а/в', 'aftn ап вылета', 'adepz',
-                                    'вылет'],
+                                    'вылет', 'apb'],
             'landing_coordinates': ['посадка', 'landing', 'dest', 'место посадки', 'а/п', 'aftn ап посадки', 'adarrz'],
-            'takeoff_time': ['время вылета', 'takeoff time', 'т выл', 'atd', 'вылета факт', 'время вылета факт.'],
-            'landing_time': ['время посадки', 'landing time', 'т пос', 'ata', 'посадки факт', 'время посадки факт.'],
+            'takeoff_time': ['время вылета', 'takeoff time', 'т выл', 'atd', 'вылета факт', 't выл.факт', 'время вылета факт.'],
+            'landing_time': ['время посадки', 'landing time', 'т пос', 'ata', 'посадки факт', 't пос.факт', 'время посадки факт.'],
             'takeoff_date': ['дата', 'date', 'полёта', 'дата вылета', 'add'],
             'landing_date': ['дата', 'date', 'полёта', 'дата посадки', 'ada']
         }
