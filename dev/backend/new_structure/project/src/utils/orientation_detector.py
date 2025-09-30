@@ -22,13 +22,13 @@ class TableOrientationDetector:
 
         print(f"Column score: {column_score}, Row score: {row_score}")
 
-        return 'rows'
+        # return 'rows'
 
         # Почему такое условие?
-        # if row_score > column_score * 1.2:  # Пороговое значение
-        #     return 'rows'
-        # else:
-        #     return 'columns'
+        if row_score > column_score * 1.2:  # Пороговое значение
+            return 'rows'
+        else:
+            return 'columns'
 
     def _score_columns(self, df: pd.DataFrame) -> int:
         """Оценивает вероятность того, что заголовки в столбцах"""
