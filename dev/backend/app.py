@@ -10,9 +10,11 @@ from glob import glob
 
 app = Flask(__name__, static_folder='dev/frontend/public', static_url_path='')
 
-DATA_DIR = 'dev/backend/data'
-FRONTEND_JSON_PATH = 'dev/frontend/public/all_data_from_back.json'
-FRONTEND_STATS_PATH = 'dev/frontend/public/flight_statistics.json'
+# Абсолютные пути относительно файла app.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'dev', 'backend', 'data')
+FRONTEND_JSON_PATH = os.path.join(BASE_DIR, 'dev', 'frontend', 'public', 'all_data_from_back.json')
+FRONTEND_STATS_PATH = os.path.join(BASE_DIR, 'dev', 'frontend', 'public', 'flight_statistics.json')
 
 @app.route('/')
 def index():
