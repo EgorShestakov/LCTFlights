@@ -2,12 +2,11 @@ const regions = document.querySelectorAll("path.region");
 var totalDroneCount = 0;
 var regionsInfo = {};
 
-const rootUrl = "http://127.0.0.1:3000";
+const rootUrl = window.location.origin;  // Автоматически берет текущий домен
 
 const contracts = {
     update_url: rootUrl + "/flights_percent"
 };
-
 /* const accentColors = {
     70: "red",
     50: "orange",
