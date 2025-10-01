@@ -8,15 +8,22 @@ from dev.backend.src.parsers.uav_flight_parser import UAVFlightParser
 from dev.backend.src.analyzers.region_analyzer import RegionAnalyzer
 from glob import glob
 
-app = Flask(__name__, static_folder='dev/frontend/public', static_url_path='')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+STATIC_FOLDER = os.path.join(PROJECT_ROOT, 'dev', 'frontend', 'public')
 
-DATA_DIR = 'dev/backend/data'
-FRONTEND_JSON_PATH = 'dev/frontend/public/all_data_from_back.json'
-FRONTEND_STATS_PATH = 'dev/frontend/public/flight_statistics.json'
+app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return send_from_directory(app.static_folder, 'index.html')
+    app.logger.info(f"Looking for index.html in: {STATIC_FOLDER}")
+    app.logger.info(
+        f"Files in static folder: {os.listdir(STATIC_FOLDER) if os.path.exists(STATIC_FOLDER) else 'FOLDER NOT EXISTS'}")
+
+    if not os.path.exists(os.path.join(STATIC_FOLDER, 'index.html')):
+        app.logger.error("index.html not found!")
+        return "index.html not found", 500
+    return send_from_directory(STATIC_FOLDER, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
