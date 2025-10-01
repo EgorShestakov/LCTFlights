@@ -1,4 +1,7 @@
-from flask import Flask, request, jsonify, send_from_directory
+import json
+import logging
+
+from flask import Flask, request, jsonify, send_from_directory, abort
 import os
 from src.parsers.excel_parser import ExcelParser
 from src.parsers.uav_flight_parser import UAVFlightParser
@@ -18,6 +21,32 @@ def index():
 @app.route('/<path:path>')
 def static_files(path):
     return send_from_directory(app.static_folder, path)
+
+
+@app.route('/flights_percent', methods=['GET'])
+def get_flights_percent():
+    try:
+        if not os.path.exists(FRONTEND_STATS_PATH):
+            logging.error(f"File not found: {FRONTEND_STATS_PATH}")
+            abort(404, description="Data file not found")
+
+        with open(FRONTEND_STATS_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        response = jsonify(data)
+        response.headers['Content-Type'] = 'application/json; charset=utf-8'
+        return response
+
+    except json.JSONDecodeError as e:
+        logging.error(f"Invalid JSON in file: {e}")
+        abort(500, description="Invalid data format")
+    except PermissionError as e:
+        logging.error(f"Permission denied: {e}")
+        abort(500, description="Cannot access data file")
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        abort(500, description="Internal server error")
+
 
 @app.route('/upload', methods=['POST'])
 def upload():

@@ -6,7 +6,7 @@
 	<link rel="stylesheet" href="index.css">
 </head>
 <body>
-<form id="uploadForm" enctype="multipart/form-data">
+<form id="uploadForm" enctype="multipart/form-data" method="POST" action="/upload">
     <input type="file" name="files" multiple accept=".xlsx,.xls">
     <button type="submit">Отправить</button>
 </form>
