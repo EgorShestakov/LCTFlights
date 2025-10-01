@@ -10,21 +10,23 @@ from glob import glob
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-STATIC_FOLDER = os.path.join(PROJECT_ROOT, 'dev', 'frontend', 'public')
-
-app = Flask(__name__)
+FRONTEND_STATIC_FOLDER = os.path.join(PROJECT_ROOT, 'dev', 'frontend', 'public')
+FRONTEND_STATS_PATH = os.path.join(FRONTEND_STATIC_FOLDER, 'flight_statistics.json')
+FRONTEND_JSON_PATH = os.path.join(FRONTEND_STATIC_FOLDER, 'all_data_from_back.json')
+DATA_DIR = os.path.join(PROJECT_ROOT, 'dev', 'backend', 'data')
+app = Flask(__name__, static_folder='dev/frontend/public')
 
 @app.route('/')
 def index():
-    app.logger.info(f"Looking for index.html in: {STATIC_FOLDER}")
-    app.logger.info(
-        f"Files in static folder: {os.listdir(STATIC_FOLDER) if os.path.exists(STATIC_FOLDER) else 'FOLDER NOT EXISTS'}")
+    # app.logger.info(f"Looking for index.html in: {STATIC_FOLDER}")
+    # app.logger.info(
+    #     f"Files in static folder: {os.listdir(STATIC_FOLDER) if os.path.exists(STATIC_FOLDER) else 'FOLDER NOT EXISTS'}")
+    #
+    # if not os.path.exists(os.path.join(STATIC_FOLDER, 'index.html')):
+    #     app.logger.error("index.html not found!")
+    #     return "index.html not found", 500
 
-    if not os.path.exists(os.path.join(STATIC_FOLDER, 'index.html')):
-        app.logger.error("index.html not found!")
-        return "index.html not found", 500
-
-    return send_from_directory(STATIC_FOLDER, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
