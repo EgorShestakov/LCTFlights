@@ -17,7 +17,7 @@ const Map = ({setRegionHover, setRegionInfo}) => {
         // ДОБАВЛЕНО: функция получения данных с сервера
         const fetchRegionData = async (regNum) => {
                 try {
-                        const response = await fetch(`http://localhost:3000/regions/${regNum}/analytics`);
+                        const response = await fetch(`/regions/${regNum}/analytics`);
                         if (response.ok) {
                                 const regionData = await response.json();
                                 setRegionInfo(regionData);

@@ -5,6 +5,7 @@ import {fileURLToPath} from 'url';
 
 import {mapStats} from "./data_mapStats.js";
 import {regionAnalytics} from "./data_regionAnalitics.js";
+import {contracts} from "./LCTFlights-react/src/contracts.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,7 +57,8 @@ const server = http.createServer((req, res) => {
 
     if (req.method === 'GET') {
         // ✅ Соответствует contracts.mapStats
-        if (req.url === '/map/stats' || /^\/map\/stats\?/.test(req.url)) {
+        // if (req.url === '/map/stats' || /^\/map\/stats\?/.test(req.url)) {
+        if (req.url === contracts.mapStats || /^\/map\/stats\?/.test(req.url)) {
             const queryParams = parseQueryParams(req.url);
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end(JSON.stringify(mapStats));
@@ -117,7 +119,8 @@ const server = http.createServer((req, res) => {
         } else {
             // Статические файлы
             let filePath = req.url === '/' ? '/index.html' : req.url;
-            filePath = path.join(__dirname, 'public', filePath);
+            filePath = path.join(__dirname, 'LCTFlights-react','dist', filePath);
+            // filePath = path.join(__dirname, 'public', filePath);
 
             fs.stat(filePath, (err, stats) => {
                 if (err || !stats.isFile()) {

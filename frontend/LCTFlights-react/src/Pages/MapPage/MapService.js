@@ -1,7 +1,10 @@
+import {contracts} from "../../contracts.js";
+
 export default async function paintMap() {
     try {
         // Получаем данные с сервера
-        const response = await fetch('http://localhost:3000/map/stats');
+        // const response = await fetch('/map/stats');
+        const response = await fetch(contracts.mapStats);
         if (!response.ok) {
             throw new Error('Ошибка получения данных с сервера');
         }
