@@ -3,6 +3,16 @@ body {
     color: white;
 }
 
+.rf-map svg {
+    width: 100%;
+    height: 400px; /* или любая другая фиксированная высота */
+    border: 1px solid #ccc; /* для визуализации */
+}
+
+.rf-map {
+    width: 100%;
+}
+
 .map{
     width: 1000px;
     height: auto;
