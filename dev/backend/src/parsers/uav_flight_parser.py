@@ -1,8 +1,8 @@
 
 import json
 from typing import List, Dict, Any
-from src.services.flight_parser_service import FlightParserService
-from src.entities.flight import FlightData
+from dev.backend.src.services.flight_parser_service import FlightParserService
+from dev.backend.src.entities.flight import FlightData
 
 
 class UAVFlightParser:

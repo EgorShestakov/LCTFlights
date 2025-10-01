@@ -3,9 +3,9 @@ import logging
 
 from flask import Flask, request, jsonify, send_from_directory, abort
 import os
-from src.parsers.excel_parser import ExcelParser
-from src.parsers.uav_flight_parser import UAVFlightParser
-from src.analyzers.region_analyzer import RegionAnalyzer
+from dev.backend.src.parsers.excel_parser import ExcelParser
+from dev.backend.src.parsers.uav_flight_parser import UAVFlightParser
+from dev.backend.src.analyzers.region_analyzer import RegionAnalyzer
 from glob import glob
 
 app = Flask(__name__, static_folder='../frontend/public', static_url_path='')

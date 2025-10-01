@@ -1,6 +1,6 @@
 
 from typing import Optional, Tuple
-from src.entities.coordinates import Coordinates
+from dev.backend.src.entities.coordinates import Coordinates
 
 
 class FlightData:
