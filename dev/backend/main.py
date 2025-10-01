@@ -1,7 +1,7 @@
 
 import os
 import json
-from config import DATA_DIR, FRONTEND_JSON_PATH, FRONTEND_STATS_PATH
+from dev.backend.config import DATA_DIR, FRONTEND_JSON_PATH, FRONTEND_STATS_PATH
 from dev.backend.src.parsers.excel_parser import ExcelParser
 from dev.backend.src.analyzers.region_analyzer import RegionAnalyzer
 from dev.backend.src.parsers.uav_flight_parser import UAVFlightParser

@@ -3,7 +3,7 @@ import json
 import geopandas as gpd
 from typing import List, Dict, Tuple
 from dev.backend.src.entities.flight import FlightData
-from config import SHAPEFILE_PATH
+from dev.backend.config import SHAPEFILE_PATH
 
 
 class RegionAnalyzer:
