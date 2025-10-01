@@ -14,7 +14,7 @@ FRONTEND_STATIC_FOLDER = os.path.join(PROJECT_ROOT, 'dev', 'frontend', 'public')
 FRONTEND_STATS_PATH = os.path.join(FRONTEND_STATIC_FOLDER, 'flight_statistics.json')
 FRONTEND_JSON_PATH = os.path.join(FRONTEND_STATIC_FOLDER, 'all_data_from_back.json')
 DATA_DIR = os.path.join(PROJECT_ROOT, 'dev', 'backend', 'data')
-app = Flask(__name__, static_folder='dev/frontend/public')
+# app = Flask(__name__, static_folder='dev/frontend/public')
 
 @app.route('/')
 def index():
@@ -26,7 +26,7 @@ def index():
     #     app.logger.error("index.html not found!")
     #     return "index.html not found", 500
 
-    return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(FRONTEND_STATIC_FOLDER, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
