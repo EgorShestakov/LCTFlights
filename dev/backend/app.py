@@ -23,6 +23,7 @@ def index():
     if not os.path.exists(os.path.join(STATIC_FOLDER, 'index.html')):
         app.logger.error("index.html not found!")
         return "index.html not found", 500
+
     return send_from_directory(STATIC_FOLDER, 'index.html')
 
 @app.route('/<path:path>')
