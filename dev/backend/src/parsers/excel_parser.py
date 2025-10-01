@@ -1,7 +1,7 @@
 
 import pandas as pd
 from typing import List, Dict
-from config import REQUIRED_FIELDS
+from dev.backend.config import REQUIRED_FIELDS
 from dev.backend.src.utils.data_mapper import DataMapper
 from dev.backend.src.parsers.uav_flight_parser import UAVFlightParser
 from dev.backend.src.entities.flight import FlightData

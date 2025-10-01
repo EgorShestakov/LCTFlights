@@ -1,7 +1,7 @@
 
 from typing import List, Dict, Any
-from src.entities.flight import FlightData
-from src.utils.data_mapper import DataMapper
+from dev.backend.src.entities.flight import FlightData
+from dev.backend.src.utils.data_mapper import DataMapper
 import re
 
 

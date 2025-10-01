@@ -8,11 +8,11 @@ from dev.backend.src.parsers.uav_flight_parser import UAVFlightParser
 from dev.backend.src.analyzers.region_analyzer import RegionAnalyzer
 from glob import glob
 
-app = Flask(__name__, static_folder='../frontend/public', static_url_path='')
+app = Flask(__name__, static_folder='dev/frontend/public', static_url_path='')
 
-DATA_DIR = 'data'
-FRONTEND_JSON_PATH = '../frontend/public/all_data_from_back.json'
-FRONTEND_STATS_PATH = '../frontend/public/flight_statistics.json'
+DATA_DIR = 'dev/backend/data'
+FRONTEND_JSON_PATH = 'dev/frontend/public/all_data_from_back.json'
+FRONTEND_STATS_PATH = 'dev/frontend/public/flight_statistics.json'
 
 @app.route('/')
 def index():
