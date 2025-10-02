@@ -58,7 +58,7 @@ const server = http.createServer((req, res) => {
     if (req.method === 'GET') {
         // ✅ Соответствует contracts.mapStats
         // if (req.url === '/map/stats' || /^\/map\/stats\?/.test(req.url)) {
-        if (req.url === contracts.mapStats || /^\/map\/stats\?/.test(req.url)) {
+        if (req.url === "/flights_percent" || /^\/map\/stats\?/.test(req.url)) {
             const queryParams = parseQueryParams(req.url);
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end(JSON.stringify(mapStats));

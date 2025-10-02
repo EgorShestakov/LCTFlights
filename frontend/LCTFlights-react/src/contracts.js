@@ -1,7 +1,9 @@
+const rootAPI = "http://localhost:3000";
+
 export const contracts = {
-    generateReport: "/reports/generate",
+    generateReport: rootAPI + "/reports/generate",
     // mapStats: rootApiUrl + "/map/stats",
-    mapStats: "/flights_percent",
-    flights: "/flights",
-    postFile: "/post",
+    mapStats: rootAPI + "/flights_percent",
+    flights: rootAPI + "/flights",
+    postFile: rootAPI + "/post",
 };
