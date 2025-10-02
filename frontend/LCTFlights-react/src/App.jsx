@@ -12,10 +12,10 @@ function App() {
         <Router>
             <div>
                 <Routes>
-                    <Route path="/map" element={<MapPage/>}/>
+                    <Route path="/" element={<MapPage/>}/>
                     <Route path="/:region/satat" element={<About/>}/>
                     <Route path="/reports" element={<Contact/>}/>
-                    <Route path="/*" element={<Redirect to={'/map'}/>}/>
+                    <Route path="/*" element={<Redirect to={'/'}/>}/>
                 </Routes>
             </div>
         </Router>

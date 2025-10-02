@@ -1,4 +1,6 @@
 export const rootAPI = "http://localhost:3000";
+// export const rootAPI = "";
+
 
 export const contracts = {
     generateReport: rootAPI + "/reports/generate",

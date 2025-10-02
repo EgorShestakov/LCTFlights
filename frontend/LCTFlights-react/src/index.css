@@ -21,6 +21,11 @@ body {
   min-height: 100vh;
 }
 
+hr {
+  /* color: white; */
+  background-color: #717171;
+}
+
 body * {
   border-radius: 10px;
 }
