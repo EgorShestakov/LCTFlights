@@ -1,5 +1,8 @@
 import React, {useEffect, useRef} from 'react';
 
+import {rootAPI} from "../../contracts.js";
+
+
 const Map = ({setRegionHover, setRegionInfo}) => {
         const thisRef = useRef(null);
 
@@ -17,7 +20,7 @@ const Map = ({setRegionHover, setRegionInfo}) => {
         // ДОБАВЛЕНО: функция получения данных с сервера
         const fetchRegionData = async (regNum) => {
                 try {
-                        const response = await fetch(`/regions/${regNum}/analytics`);
+                        const response = await fetch(rootAPI + `/regions/${regNum}/analytics`);
                         if (response.ok) {
                                 const regionData = await response.json();
                                 setRegionInfo(regionData);
