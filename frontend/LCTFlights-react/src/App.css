@@ -1,0 +1,44 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+body {
+  background-color: rgba(63, 64, 64, 0.99);
+  color: white;
+}
+
+svg {
+  width: 100%;
+  min-height: 600px;
+  /* border: 1px solid #ccc; */
+}
+
+.map {
+  min-width: 1000px;
+  height: auto;
+
+  margin-left: auto;
+  margin-right: auto;
+
+  /* display: flex; */
+}
+
+.region {
+  fill: #acacac;
+  stroke: #252525;
+  stroke-width: 1;
+  stroke-linejoin: round;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.region:hover {
+  stroke: #00f4d8;
+  stroke-width: 7px;
+}
+
+
+
