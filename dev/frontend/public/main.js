@@ -16,10 +16,11 @@ const contracts = {
 }; */
 
 function getColor(percent) {
-    if (percent >= 10) return "red";
-    else if (percent >= 3) return "orange";
-    else if (percent >= 1.5) return "yellow";
+    if (percent >= 20) return "red";
+    else if (percent >= 10) return "orange";
+    else if (percent >= 5) return "yellow";
     else if (percent >= 1) return "green";
+    else if (percent >= 0) return "white";
     else return "gray";
 }
 
