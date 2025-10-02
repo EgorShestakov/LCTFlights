@@ -1,5 +1,6 @@
 import {contracts} from "../../contracts.js";
 
+
 export default async function paintMap() {
     try {
         // Получаем данные с сервера
